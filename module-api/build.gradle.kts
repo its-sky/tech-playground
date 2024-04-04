@@ -13,4 +13,7 @@ dependencies {
 
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
+
+    // RabbitMQ
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
 }
