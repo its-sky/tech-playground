@@ -18,4 +18,7 @@ dependencies {
 
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    // RabbitMQ
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
 }

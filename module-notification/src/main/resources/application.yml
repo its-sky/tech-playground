@@ -22,10 +22,26 @@ spring:
     baseline-description: 0
     enabled: true
 
+  rabbitmq:
+    host: ${RABBIT_MQ_HOST}
+    port: ${RABBIT_MQ_PORT}
+    username: ${RABBIT_MQ_USERNAME}
+    password: ${RABBIT_MQ_PASSWORD}
+    ssl:
+      enabled: true
+
   config:
     import: optional:application-secret.properties
     activate:
       on-profile: local
+
+rabbitmq:
+  queue:
+    name: notification
+  exchange:
+    name: notification-exchange
+  routing:
+    key: key
 
 server:
   port: 8081
