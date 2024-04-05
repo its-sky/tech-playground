@@ -29,6 +29,14 @@ spring:
     password: ${RABBIT_MQ_PASSWORD}
     ssl:
       enabled: true
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 2s
+          max-interval: 8s
+          multiplier: 2
+          max-attempts: 4
 
   config:
     import: optional:application-secret.properties
@@ -37,11 +45,19 @@ spring:
 
 rabbitmq:
   queue:
-    name: notification
+    name: ${RABBIT_MQ_QUEUE_NAME}
   exchange:
-    name: notification-exchange
+    name: ${RABBIT_MQ_EXCHANGE_NAME}
   routing:
-    key: key
+    key: ${RABBIT_MQ_ROUTING_KEY}
+  dead:
+    queue:
+      name: ${RABBIT_MQ_DEAD_QUEUE_NAME}
+    exchange:
+      name: ${RABBIT_MQ_DEAD_EXCHANGE_NAME}
+    routing:
+      key: ${RABBIT_MQ_DEAD_ROUTING_KEY}
+
 
 server:
   port: 8081
