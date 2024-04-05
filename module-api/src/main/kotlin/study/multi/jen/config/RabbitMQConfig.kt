@@ -1,16 +1,22 @@
 package study.multi.jen.config
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.DirectExchange
 import org.springframework.amqp.core.Queue
+import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
+import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
 import org.springframework.amqp.support.converter.MessageConverter
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+
+private val logger = KotlinLogging.logger {}
 
 @Configuration
 class RabbitMQConfig {
@@ -31,8 +37,20 @@ class RabbitMQConfig {
     @Value("\${rabbitmq.routing.key}")
     private lateinit var routingKey: String;
 
+    @Value("\${rabbitmq.dead.queue.name}")
+    private lateinit var deadLetterQueueName: String
+    @Value("\${rabbitmq.dead.exchange.name}")
+    private lateinit var deadLetterExchangeName: String
+    @Value("\${rabbitmq.dead.routing.key}")
+    private lateinit var deadLetterRoutingKey: String
+
     @Bean
-    fun queue(): Queue = Queue(queueName)
+    fun queue(): Queue {
+        val queue = Queue(queueName)
+        queue.addArgument("x-dead-letter-exchange", deadLetterExchangeName)
+        queue.addArgument("x-dead-letter-routing-key", deadLetterRoutingKey)
+        return queue
+    }
 
     @Bean
     fun directExchange(): DirectExchange = DirectExchange(exchangeName)
@@ -45,6 +63,13 @@ class RabbitMQConfig {
     fun rabbitTemplate(connectionFactory: ConnectionFactory): RabbitTemplate {
         val rabbitTemplate = RabbitTemplate(connectionFactory)
         rabbitTemplate.messageConverter = jackson2JsonMessageConverter()
+        rabbitTemplate.setConfirmCallback { correlationData, ack, cause ->
+            if (!ack) {
+                val message = correlationData!!.returned?.message
+                val body = message?.body
+                logger.error { "Fail to produce. ID: ${correlationData.id}" }
+            }
+        }
         return rabbitTemplate
     }
 

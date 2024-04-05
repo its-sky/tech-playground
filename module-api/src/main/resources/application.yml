@@ -29,6 +29,10 @@ spring:
     password: ${RABBIT_MQ_PASSWORD}
     ssl:
       enabled: true
+    publisher-confirm-type: correlated
+    listener:
+      simple:
+        acknowledge-mode: manual
 
   config:
     import: optional:application-secret.properties
@@ -42,3 +46,10 @@ rabbitmq:
     name: ${RABBIT_MQ_EXCHANGE_NAME}
   routing:
     key: ${RABBIT_MQ_ROUTING_KEY}
+  dead:
+    queue:
+      name: ${RABBIT_MQ_DEAD_QUEUE_NAME}
+    exchange:
+      name: ${RABBIT_MQ_DEAD_EXCHANGE_NAME}
+    routing:
+      key: ${RABBIT_MQ_DEAD_ROUTING_KEY}
